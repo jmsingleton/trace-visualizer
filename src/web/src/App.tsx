@@ -1,10 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { EventProvider, useEvents } from './contexts/EventContext';
 import { theme } from './styles/theme';
 import { Balanced } from './layouts/Balanced';
 import { Vibe } from './layouts/Vibe';
 import { MissionControl } from './layouts/MissionControl';
 import { Debrief } from './layouts/Debrief';
+import { ArtifactCard } from './artifact/ArtifactCard';
+import { exportPNG } from './artifact/generatePNG';
+import { exportHTML } from './artifact/generateHTML';
 import './styles/globals.css';
 
 type Layout = 'balanced' | 'vibe' | 'mission' | 'debrief';
@@ -26,6 +29,43 @@ function StatusDot({ connected }: { connected: boolean }) {
       display: 'inline-block',
       transition: 'all 0.3s',
     }} />
+  );
+}
+
+function ExportButton() {
+  const { events, stats } = useEvents();
+  const [exporting, setExporting] = useState(false);
+
+  const handleExport = async () => {
+    if (!stats || exporting) return;
+    setExporting(true);
+    try {
+      // Give the card time to render offscreen
+      await new Promise(r => setTimeout(r, 150));
+      const el = document.getElementById('artifact-card');
+      if (el) await exportPNG(el);
+      exportHTML(events, stats);
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  return (
+    <>
+      {stats && <ArtifactCard events={events} stats={stats} format="1080x1080" />}
+      <button
+        onClick={handleExport}
+        disabled={exporting}
+        style={{
+          background: 'transparent', color: exporting ? theme.textDim : theme.gold,
+          border: `1px solid ${exporting ? theme.textDim + '44' : theme.gold + '44'}`,
+          padding: '3px 14px', borderRadius: 3, cursor: exporting ? 'default' : 'pointer',
+          fontSize: 10, letterSpacing: 1.5, transition: 'all 0.2s',
+        }}
+      >
+        {exporting ? '...' : '⬡ EXPORT'}
+      </button>
+    </>
   );
 }
 
@@ -55,14 +95,7 @@ function Header({ layout, setLayout }: { layout: Layout; setLayout: (l: Layout) 
         ))}
       </nav>
       <div style={{ marginLeft: 'auto' }}>
-        <button id="export-btn" style={{
-          background: 'transparent', color: theme.gold,
-          border: `1px solid ${theme.gold}44`, padding: '3px 14px',
-          borderRadius: 3, cursor: 'pointer', fontSize: 10,
-          letterSpacing: 1.5,
-        }}>
-          ⬡ EXPORT
-        </button>
+        <ExportButton />
       </div>
     </header>
   );
