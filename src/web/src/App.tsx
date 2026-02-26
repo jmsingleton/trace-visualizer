@@ -1,11 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { EventProvider, useEvents } from './contexts/EventContext';
 import { theme } from './styles/theme';
+import { Balanced } from './layouts/Balanced';
+import { Vibe } from './layouts/Vibe';
+import { MissionControl } from './layouts/MissionControl';
+import { Debrief } from './layouts/Debrief';
 import './styles/globals.css';
 
 type Layout = 'balanced' | 'vibe' | 'mission' | 'debrief';
 
 const LAYOUT_KEYS: Record<string, Layout> = { b: 'balanced', v: 'vibe', m: 'mission', d: 'debrief' };
+const LAYOUTS: Record<Layout, React.ComponentType> = {
+  balanced: Balanced,
+  vibe:     Vibe,
+  mission:  MissionControl,
+  debrief:  Debrief,
+};
 
 function StatusDot({ connected }: { connected: boolean }) {
   return (
@@ -45,7 +55,7 @@ function Header({ layout, setLayout }: { layout: Layout; setLayout: (l: Layout) 
         ))}
       </nav>
       <div style={{ marginLeft: 'auto' }}>
-        <button style={{
+        <button id="export-btn" style={{
           background: 'transparent', color: theme.gold,
           border: `1px solid ${theme.gold}44`, padding: '3px 14px',
           borderRadius: 3, cursor: 'pointer', fontSize: 10,
@@ -55,16 +65,6 @@ function Header({ layout, setLayout }: { layout: Layout; setLayout: (l: Layout) 
         </button>
       </div>
     </header>
-  );
-}
-
-function LayoutArea({ layout }: { layout: Layout }) {
-  return (
-    <div style={{ flex: 1, overflow: 'hidden', padding: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ color: theme.textDim, fontSize: 11, letterSpacing: 2 }}>
-        [ {layout.toUpperCase()} — panels coming in next tasks ]
-      </div>
-    </div>
   );
 }
 
@@ -81,11 +81,15 @@ export function App() {
     return () => window.removeEventListener('keydown', handler);
   }, []);
 
+  const LayoutComponent = LAYOUTS[layout];
+
   return (
     <EventProvider>
       <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: theme.bg }}>
         <Header layout={layout} setLayout={setLayout} />
-        <LayoutArea layout={layout} />
+        <div style={{ flex: 1, overflow: 'hidden', padding: 8 }}>
+          <LayoutComponent />
+        </div>
       </div>
     </EventProvider>
   );
