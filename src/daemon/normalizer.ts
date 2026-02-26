@@ -56,6 +56,12 @@ export function normalizeHookPayload(
       return { ...base, type: 'compact_start', tokensBefore: payload.tokens_before as number };
     case 'PostCompact':
       return { ...base, type: 'compact_end', tokensAfter: payload.tokens_after as number };
+    case '__replay__': {
+      // Pass through already-normalized replay events
+      const replayEvent = payload as unknown as TraceEvent;
+      if (replayEvent.type) return { ...replayEvent, id: base.id, timestamp: base.timestamp };
+      return null;
+    }
     default:
       return null;
   }

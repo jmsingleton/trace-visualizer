@@ -39,3 +39,11 @@ test('Task tool spawn → agent_spawn event', () => {
 test('unknown hook → null', () => {
   expect(normalizeHookPayload({ hook: 'Unknown' }, 'agent-0')).toBeNull();
 });
+
+test('__replay__ passthrough preserves event type', () => {
+  const event = normalizeHookPayload(
+    { hook: '__replay__', type: 'notification', message: 'replayed', sessionId: 'sess-1', agentId: 'agent-0', id: 'orig-id', timestamp: 123 },
+    'agent-0'
+  );
+  expect(event?.type).toBe('notification');
+});

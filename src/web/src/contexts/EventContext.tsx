@@ -41,6 +41,11 @@ export function EventProvider({ children }: { children: React.ReactNode }) {
         const event = msg as TraceEvent;
         setEvents(prev => [...prev, event]);
         setLatestEvent(event);
+        // Refresh stats from daemon after each event
+        fetch(`http://${window.location.host}/stats`)
+          .then(r => r.json())
+          .then(s => setStats(s as SessionStats))
+          .catch(() => { /* daemon may not be running */ });
       }
     };
     return () => ws.close();
