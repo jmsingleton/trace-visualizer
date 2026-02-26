@@ -9,7 +9,12 @@ switch (command) {
     const { openBrowser } = await import('./open-browser');
     const distPath = new URL('../../dist/web', import.meta.url).pathname;
     const server = await createServer({ port: 7823, devMode: false, webDistPath: distPath });
+    const { networkInterfaces } = await import('os');
+    const nets = networkInterfaces();
+    const lan = Object.values(nets).flat().find(n => n && n.family === 'IPv4' && !n.internal);
+    const lanUrl = lan ? `http://${lan.address}:7823` : null;
     console.log('⬡ trace-viz running → http://localhost:7823');
+    if (lanUrl) console.log(`⬡ network access  → ${lanUrl}`);
     openBrowser('http://localhost:7823');
     process.on('SIGINT', () => { server.stop(); process.exit(0); });
     break;

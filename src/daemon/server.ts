@@ -24,6 +24,7 @@ export async function createServer(options: ServerOptions) {
 
   const server = Bun.serve({
     port: options.port,
+    hostname: '0.0.0.0',
     async fetch(req, server) {
       const url = new URL(req.url);
 
